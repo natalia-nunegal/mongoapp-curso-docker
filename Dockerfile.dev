@@ -1,8 +1,12 @@
 FROM node:18
 
+# Instalamos nodemon
+# Herramienta de desarrollo para cambios de código en caliente (no es necesario reiniciar servidor)
 RUN npm i -g nodemon
+
 RUN mkdir -p /home/app
 
+# Establecemos el directorio de trabajo (dónde va a estar el código de nuestra aplicación)
 WORKDIR /home/app
 
 EXPOSE 3000

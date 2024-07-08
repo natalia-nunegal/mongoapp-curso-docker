@@ -1,22 +1,19 @@
 version: "3.9"
 services:
-  chanchito:
+  miappcont:
     build: .
     ports:
       - "3000:3000"
     links:
-      - monguito
-  monguito:
+      - "mongoserver"
+  mongoserver:
     image: mongo
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=nico
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME=natalia
+      - MONGO_INITDB_ROOT_PASSWORD=admin
     volumes:
       - mongo-data:/data/db
-      # mysql -> /var/lib/mysql
-      # postgres -> /var/lib/postgresql/data
-
 volumes:
   mongo-data:
