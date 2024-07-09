@@ -285,7 +285,66 @@ services: # Contenedores que queremos crear. Se indican sus nombres
       - MONGO_INITDB_ROOT_PASSWORD=admin # Password
     volumes: # Volúmenes que usa nuestro contenedor. Las rutas están en la documentación oficial de Docker Hub
       - mongo-data:/data/db # {nombre-volumen-definido-en-seccion-volumes}:{ruta-datos-en-contenedor}
-volumes:  # Definimos los volúmenes anónimos (no indicamos ruta local)
+volumes:  # Definimos los volúmenes 
   mongo-data: # Sólo hace falta darle un nombre para referenciarlo desde un contenedor
 ```
+
+# Diferentes entornos y hot reload (cambios en código en caliente)
+
+1. Crear un fichero **Dockerfile.dev** para las configuraciones del entorno de desarrollo
+Se va a usar nodemon como herramienta para cambios en caliente en el código. 
+Ya no necesitamos mover nuestro código a la carpeta /home/app, porque se va a encargar nodemon
+
+EJEMPLO
+```Dockerfile
+FROM node:18
+
+# Instalamos nodemon
+# Herramienta de desarrollo para cambios de código en caliente (no es necesario reiniciar servidor)
+RUN npm i -g nodemon
+RUN mkdir -p /home/app
+
+# Ya  no nos hace falta esta línea pq vamos a usar un volumen que apunta directamente a esa ruta.
+# COPY . /home/app
+
+# Establecemos el directorio de trabajo (dónde va a estar el código de nuestra aplicación)
+WORKDIR /home/app
+
+EXPOSE 3000
+
+CMD ["nodemon", "index.js"]
+``` 
+
+2. Crear el fichero **docker-compose-dev.yml** para crear los contenedores del entorno dev
+Tengo que crear un volumen (anónimo) para mapear la ruta en la que se encuentra el código de la app en la máquina host con la ruta en la que se encuentra el código en mi contenedor.
+
+```yaml
+version: "3.9" # Versión de docker compose con la que estamos trabajando
+services: # Contenedores que queremos crear. Se indican sus nombres
+  miappcont: # Contenedor para mi aplicación node.js
+    build: 
+      context: .  # Indicamos a docker compose dónde se encuentra la aplicación sobre la cuál va a estar trabajando (evitamos tener que andar moviendo el código y haciendo build)
+      dockerfile: Dockerfile.dev # Le indicamos a docker compose que para construir nuestros contenedores tiene que usar el fichero Dockerfile.dev y no el Dockerfile por defecto
+    ports: # Port Mapping 
+      - "3000:3000" # {puerto-máquina-host:puerto-contenedor}
+    links: # Otros contenedores utilizados por este
+      - "mongoserver"
+    volumes:  # Tengo que montar un volumen anónimo donde mapeo lo siguiente --> {ruta-código-app-host}:{ruta-código-contenedor}
+      - .:/home/app
+  mongoserver: # Contenedor basado en la imagen de mongodb
+    image: mongo # Imagen en la que se basa el contenedor
+    ports: # Port Mapping
+      - "27017:27017" # {puerto-máquina-host:puerto-contenedor}
+    environment: # Variables de entorno que hay que pasarle al contenedor para configurarlo
+      - MONGO_INITDB_ROOT_USERNAME=natalia # Usuario
+      - MONGO_INITDB_ROOT_PASSWORD=admin # Password
+    volumes: # Volúmenes que usa nuestro contenedor. Las rutas están en la documentación oficial de Docker Hub
+      - mongo-data:/data/db # {nombre-volumen-definido-en-seccion-volumes}:{ruta-datos-en-contenedor}
+volumes:  # Definimos los volúmenes 
+  mongo-data: # Sólo hace falta darle un nombre para referenciarlo desde un contenedor
+```
+
+3. Ejecutar docker compose run, pero hay que indicarle qué fichero de docker-compose tiene que usar (dev). Eso se hace con la opción -f
+
+```docker compose -f {fichero-docker-compose-dev} up```
 

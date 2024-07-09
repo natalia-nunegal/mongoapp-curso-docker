@@ -1,11 +1,15 @@
 version: "3.9" # Versión de docker compose con la que estamos trabajando
 services: # Contenedores que queremos crear. Se indican sus nombres
   miappcont: # Contenedor para mi aplicación node.js
-    build: .  # Ruta donde está el código para construir la imagen
+    build: 
+      context: .  # Indicamos a docker compose dónde se encuentra la aplicación sobre la cuál va a estar trabajando (evitamos tener que andar moviendo el código y haciendo build)
+      dockerfile: Dockerfile.dev # Le indicamos a docker compose que para construir nuestros contenedores tiene que usar el fichero Dockerfile.dev y no el Dockerfile por defecto
     ports: # Port Mapping 
       - "3000:3000" # {puerto-máquina-host:puerto-contenedor}
     links: # Otros contenedores utilizados por este
       - "mongoserver"
+    volumes:  # Tengo que montar un volumen anónimo donde mapeo lo siguiente --> {ruta-código-app-host}:{ruta-código-contenedor}
+      - .:/home/app
   mongoserver: # Contenedor basado en la imagen de mongodb
     image: mongo # Imagen en la que se basa el contenedor
     ports: # Port Mapping

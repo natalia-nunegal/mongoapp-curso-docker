@@ -2,9 +2,13 @@ FROM node:18
 
 # Instalamos nodemon
 # Herramienta de desarrollo para cambios de código en caliente (no es necesario reiniciar servidor)
-RUN npm i -g nodemon
+# Instala nodemon en modod global (-g) para que esté disponible en todo el sistema, no sólo en el directorio de trabajo
+RUN npm install -g nodemon
 
 RUN mkdir -p /home/app
+
+# Ya  no nos hace falta esta línea pq vamos a usar un volumen que apunta directamente a esa ruta.
+# COPY . /home/app
 
 # Establecemos el directorio de trabajo (dónde va a estar el código de nuestra aplicación)
 WORKDIR /home/app
